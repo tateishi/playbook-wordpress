@@ -1,0 +1,10 @@
+- hosts: target
+  tasks:
+    - name: make wks directory
+      file:
+        path: ~/wks
+        state: directory
+    - name: checkout docker-jupyterlab repository
+      git:
+        repo: https://github.com/tateishi/docker-wordpress.git
+        dest: ~/wks/docker-wordpress
