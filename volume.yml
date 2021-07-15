@@ -1,0 +1,57 @@
+# -*- mode: yaml -*-
+
+- name: prepare volume
+  hosts: target
+  become: true
+  vars:
+    drive: /dev/sdb
+    vg_name: vg1
+    pool_name: pool
+    pool_size: "+100%FREE"
+    data_name: data
+    data_size: "15G"
+    fstype: ext4
+    path_name: /var/lib/docker
+
+  tasks:
+    - name: prepare gpt partition
+      parted:
+        device: "{{ drive }}"
+        label: gpt
+        number: 1
+        flags:
+          - lvm
+        state: present
+
+    - name: create volume group
+      lvg:
+        vg: "{{ vg_name }}"
+        pvs: "{{ drive }}1"
+        state: present
+
+    - name: create thin pool
+      lvol:
+        vg: "{{ vg_name }}"
+        thinpool: "{{ pool_name }}"
+        size: "{{ pool_size }}"
+        state: present
+
+    - name: create thin volume
+      lvol:
+        vg: "{{ vg_name }}"
+        lv: "{{ data_name }}"
+        thinpool: "{{ pool_name }}"
+        size: "{{ data_size }}"
+        state: present
+
+    - name: create filesystem
+      filesystem:
+        fstype: "{{ fstype }}"
+        dev: "/dev/{{ vg_name }}/{{ data_name }}"
+
+    - name: mount filesystem
+      mount:
+        path: "{{ path_name }}"
+        src: "/dev/{{ vg_name }}/{{ data_name }}"
+        fstype: "{{ fstype }}"
+        state: mounted

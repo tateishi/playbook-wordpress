@@ -1,3 +1,4 @@
 - import_playbook: regular.yml
+- import_playbook: volume.yml
 - import_playbook: docker.yml
 - import_playbook: wordpress.yml
